@@ -1,0 +1,36 @@
+# requires a memcached instance!
+
+version: '2'
+services:
+    esmoMockAP:
+        container_name: esmoMockAP
+        image: endimion13/esmo-gr-ap:0.0.1
+        environment:
+            - HTTP_HEADER=false
+            - ASYNC_SIGNATURE=true
+            - URL_ENCODED=true
+            - KEY_PASS=selfsignedpass
+            - STORE_PASS=keystorepass
+            - JWT_CERT_ALIAS=selfsigned
+            - HTTPSIG_CERT_ALIAS=1
+            - MEMCACHED_HOST=172.17.0.1
+            - MEMCACHED_PORT=11211
+            - ESMO_SERVICE_DESCRIPTION=UAegean Identity Provider
+            - ESMO_EXPOSE_URL=https://aegean.gr/esmo/gw/idp/authenticate
+            - ESMO_DEFAULT_NAME=UAegean Attribute Provider
+            - ESMO_SUPPORTED_SIG_ALGORITHMS=RSA-SHA256
+            - ESMO_SUPPORTED_ENC_ALGORITHMS=RSA-SHA256
+            - ACM_URL=http://0.0.0.0:8090 
+            - SESSION_MANAGER_URL=http://0.0.0.0:8090
+            - KEYSTORE_PATH=resources/testKeys/keystore.jks
+            - CONFIGURATION_MANAGER_URL=http://5.79.83.118:8080
+            - ACM_NAME=ACMms001
+            - ACM_URL=http://dss1.aegean.gr:8070
+            - AP_MS_NAME=APms001
+            - REDIRECT_JWT_SENDER=APms001
+            - REDIRECT_JWT_RECEIVER=ACMms001
+            - SUPPORTED_CLAIMS=eduPersonAffiliation,primaryAffiliation,schacHomeOrganization,mail,schacExpiryDate,mobile,eduPersonPrincipalName,eduPersonPrincipalNamePrior,displayName,sn,givenName
+        volumes:
+            - /home/nikos/NetBeansProjects/esmo.gr.idp/src/test/resources:/resources
+        ports:
+          - 8093:8080

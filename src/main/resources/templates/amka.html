@@ -1,0 +1,202 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <meta charset="utf-8"></meta>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+        <meta name="description" content=""></meta>
+        <meta name="author" content=""></meta>
+        <title>Create a new account</title>
+        <!-- Compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css"></link>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
+        <link rel="stylesheet" href="/css/main.css"></link>
+        <link rel="icon"
+              type="image/x-icon"
+              href="favicon.ico"></link>
+
+        <!-- Overide the sidebar css -->
+        <style>
+            .sideBarClass{
+                margin-top: 0;
+            }
+
+            .breadCrumbs{
+                font-size: 18px;
+                color:  #00be9f;
+                padding-left: 0px;
+            }
+        </style>
+    </head>
+    <body>
+
+
+        <div th:replace="header :: header">Header</div>
+
+        <div class="container">
+
+            <div class="row  mainContent">
+
+                <div class="col s12 m12 l12">
+
+                    <div class="container" style="width: 90%;">
+
+                        <div class="row breadCrumbs">
+                            <div class="col s12" style="font-size: smaller;" >
+                                <a  onclick="langGR()" style="cursor: pointer">Greek</a>
+                                <a  onclick="langEN()" style="cursor: pointer; margin-left: 0.5rem;">English</a>
+                            </div>
+
+                        </div>
+
+                        <div class="row instructions">
+                            <!--                            <div  id="mobile" class="col s12 flow-text hide-on-large-only">
+                                                            <div class="row">
+                                                                <p th:text="#{identifyMinEdu}">Identify to access your academic attributes</p> 
+                                                                <p th:text="#{provideAmka}">You will now be directed to the eIDAS Network to securely identify and trustly 
+                                                                    provide us your main identity attributes. Review the identification attributes that will be requested
+                                                                </p>  
+                                                            </div>
+                                                            <div class="row">
+                                                                <form action="#" th:action="@{/ap/forward}" th:object="${amka}" method="post">
+                                                                    <p th:text="#{amka}"> <input type="text" th:field="*{amkaNumber}" /> </p>
+                                                                    <p th:text="#{academicId}"><input type="text" th:field="*{academicId}" /> </p>
+                                                                    <input type="hidden" name="sessionId" th:field="*{sessionId}" th:value="${amka.sessionId}"/>
+                                                                    <p>
+                                                                        <input class="waves-effect waves-light btn-large swell-btn next-btn" type="submit" value="Submit" /> 
+                                                                        <input class="waves-effect waves-light btn-large swell-btn cancel-btn" type="reset" value="Reset" />
+                                                                    </p>
+                                                                </form>
+                                                            </div>
+                                                        </div>-->
+                            <div   class="col s12  hide-on-med-and-down ">
+                                <div class="row">
+                                    <p th:text="#{identifyMinEdu}">Identify to access your academic attributes</p> 
+                                    <p th:text="#{provideAmka}">You will now be directed to the eIDAS Network to securely identify and trustly 
+                                        provide us your main identity attributes. Review the identification attributes that will be requested
+                                    </p>  
+                                </div>
+                                <div class="row">
+
+                                    <form  th:action="@{/ap/forward}" th:object="${amka}" method="post"  commandName="amka">
+                                        <i style="color:red" th:if="${#fields.hasErrors('amkaNumber')}" th:errors="*{amkaNumber}">A.M.K.A is required!</i>
+                                        <label for="amka" th:text="#{amka}"></label>
+                                        <input type="text" id="amka" th:field="*{amkaNumber}" /> 
+                                        <label for="academicId" th:text="#{academicId}"></label>
+                                        <input id="academicId" type="text" th:field="*{academicId}" /> </p>
+                                        <input type="hidden" name="sessionId" th:field="*{sessionId}" th:value="${amka.sessionId}"/>
+                                        <button class="col s12 m4 l4 waves-effect waves-light btn-large swell-btn cancel-btn" type="reset" value="Reset">Reset</button>
+                                        <button class= "col s12 m4 l4 waves-effect waves-light btn-large swell-btn next-btn" type="submit" value="Submit">Submit</button>
+                                    </form>
+                                </div>
+                            </div>
+
+
+
+                        </div>
+
+
+
+
+
+                    </div>
+                </div>
+
+
+                <!--                <div class="col s12 m12 l2">
+                                    <div   th:replace="sidebar :: sidebar"></div>
+                                </div>-->
+
+            </div>
+            <div class="row" th:replace="footer :: footer"></div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+        <!--Import jQuery before materialize.js-->
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+        <!-- Compiled and minified JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+        <script th:inline="javascript">
+                                    /*<![CDATA[*/
+                                    $(document).ready(function () {
+
+
+                                    $('select').material_select();
+                                    $('.modal').modal();
+                                    let countrySelector = $("#countrySelection").is(":visible")?$("#countrySelection"):$("#countrySelection2");
+                                    if (!countrySelector.val()) {
+                                    $('#next').removeClass("waves-effect waves-light submit").addClass('disabled');
+                                    }
+
+                                    countrySelector.change(function () {
+                                    if (this.vaue !== "") {
+                                    $('#next').removeClass("disabled").addClass('waves-effect waves-light submit');
+                                    } else {
+                                    $('#next').removeClass("waves-effect waves-light submit").addClass('disabled');
+                                    }
+
+                                    });
+                                    });
+                                    function onNextClick() {
+                                    let countrySelector = $("#mobile").is(":visible")?$("#countrySelection"):$("#countrySelection2");
+                                    let country = countrySelector.val();
+                                    let IdPMSSession = $("#IdPMSSession").val();
+                                    let url = "generateSAMLToken?citizenCountry=" + country + "&IdPMSSession=" + IdPMSSession;
+                                    $.get(url, function (data, status) {
+                                    if (status == "success") {
+                                    let form = $('<form></form>', {
+                                    method: "post",
+                                            action: $("#eidasUrl").val()
+                                    });
+                                    form.append('<input type="hidden" name="SAMLRequest" value=' + data + '></input>')
+                                            form.append('<input type="hidden" name="country" value=' + country + '></input>');
+                                    $('body').append(form);
+                                    form.submit();
+                                    }
+                                    });
+                                    }
+
+                                    function linkedInClick() {
+                                    let clientId = [[${clientID}]];
+                                    let redirectURI = [[${redirectURI}]];
+                                    let responseType = [[${responseType}]];
+                                    let state = [[${state}]];
+                                    let location = "https://www.linkedin.com/oauth/v2/authorization?"
+                                            + "response_type=" + responseType
+                                            + "&client_id=" + clientId
+                                            + "&redirect_uri=" + redirectURI
+                                            + "&state=" + state;
+                                    window.location = location;
+                                    }
+
+                                    function onCancelClick() {
+                                    let failPage = [[${spFailPage}]];
+                                    window.location = [[${urlPrefix}]] + "/authfail?reason=disagree";
+                                    }
+                                    function onNextClickUAegean() {
+                                    let uAegeanAP = [[${UAegeanAP}]];
+                                    let location = uAegeanAP + "?t=" + [[${token}]] + "&sp=" + [[${sp}]];
+                                    window.location = location;
+                                    }
+                                    function langGR(){
+                                    window.location.href = 'login?localeCode=gr';
+                                    }
+                                    function langEN(){
+                                    window.location.href = 'login?localeCode=en';
+                                    }
+                                    /*]]>*/
+        </script>
+    </body>
+</html>

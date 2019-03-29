@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>debug</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -classpath %classpath esmo.test.ap.apms.ApmsApplication</exec.args>
+                <exec.executable>java</exec.executable>
+                <jpda.listen>true</jpda.listen>
+                <Env.ASYNC_SIGNATURE>true</Env.ASYNC_SIGNATURE>
+                <Env.URL_ENCODED>true</Env.URL_ENCODED>
+                <Env.KEY_PASS>selfsignedpass</Env.KEY_PASS>
+                <Env.STORE_PASS>keystorepass</Env.STORE_PASS>
+                <Env.JWT_CERT_ALIAS>selfsigned</Env.JWT_CERT_ALIAS>
+                <Env.HTTPSIG_CERT_ALIAS>1</Env.HTTPSIG_CERT_ALIAS>
+                <Env.ESMO_SERVICE_DESCRIPTION>UAegean Identity Provider</Env.ESMO_SERVICE_DESCRIPTION>
+                <Env.ESMO_EXPOSE_URL>https://aegean.gr/esmo/gw/idp/authenticate</Env.ESMO_EXPOSE_URL>
+                <Env.ESMO_DEFAULT_NAME>UAegean Attribute Provider</Env.ESMO_DEFAULT_NAME>
+                <Env.ESMO_SUPPORTED_SIG_ALGORITHMS>RSA-SHA256</Env.ESMO_SUPPORTED_SIG_ALGORITHMS>
+                <Env.ESMO_SUPPORTED_ENC_ALGORITHMS>RSA-SHA256</Env.ESMO_SUPPORTED_ENC_ALGORITHMS>
+                <Env.SESSION_MANAGER_URL>http://dss1.aegean.gr:8090</Env.SESSION_MANAGER_URL>
+                <Env.KEYSTORE_PATH>/home/nikos/NetBeansProjects/session-mng/src/test/resources/testKeys/keystore.jks</Env.KEYSTORE_PATH>
+                <Env.CONFIGURATION_MANAGER_URL>http://dss1.aegean.gr:8080</Env.CONFIGURATION_MANAGER_URL>
+                <Env.ACM_NAME>ACMms001</Env.ACM_NAME>
+                <Env.ACM_URL>http://dss1.aegean.gr:8070</Env.ACM_URL>
+                <Env.AP_MS_NAME>APms001</Env.AP_MS_NAME>
+                <Env.REDIRECT_JWT_SENDER>APms001</Env.REDIRECT_JWT_SENDER>
+                <Env.REDIRECT_JWT_RECEIVER>ACMms001</Env.REDIRECT_JWT_RECEIVER>
+                <Env.SUPPORTED_CLAIMS>eduPersonAffiliation,primaryAffiliation,schacHomeOrganization,mail,schacExpiryDate,mobile,eduPersonPrincipalName,eduPersonPrincipalNamePrior,displayName,sn,givenName</Env.SUPPORTED_CLAIMS>
+                <Env.FOO>bar</Env.FOO>
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+            </properties>
+        </action>
+    </actions>
