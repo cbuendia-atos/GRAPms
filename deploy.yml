@@ -30,6 +30,11 @@ services:
             - REDIRECT_JWT_SENDER=APms001
             - REDIRECT_JWT_RECEIVER=ACMms001
             - SUPPORTED_CLAIMS=eduPersonAffiliation,primaryAffiliation,schacHomeOrganization,mail,schacExpiryDate,mobile,eduPersonPrincipalName,eduPersonPrincipalNamePrior,displayName,sn,givenName
+            - MINEDU_TOKEN_URL=https://validation.interoperability.gr:9443/OAUTH2Proxy_1.0.0/services/oauthproxy/authorization/token
+            - MINEDU_TOKEN_USERNAME=user
+            - MINEDU_TOKEN_PASSWORD=pass
+            - MINEDU_TOKEN_GRANTTYPE=password
+            - MINEDU_QUERYID_URL=https://gateway.interoperability.gr/academicId/1.0.1/queryID
         volumes:
             - /home/nikos/NetBeansProjects/esmo.gr.idp/src/test/resources:/resources
         ports:

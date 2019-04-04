@@ -5,30 +5,6 @@
  */
 package esmo.test.ap.apms.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import esmo.test.ap.apms.MemCacheConfig;
-import esmo.test.ap.apms.model.factories.EsmoResponseFactory;
-import esmo.test.ap.apms.model.pojo.Amka;
-import esmo.test.ap.apms.model.pojo.AttributeSet;
-import esmo.test.ap.apms.model.pojo.AttributeType;
-import esmo.test.ap.apms.model.pojo.EntityMetadata;
-import esmo.test.ap.apms.model.pojo.MinEduResponse;
-import esmo.test.ap.apms.model.pojo.MinEduResponse.InspectionResult;
-import esmo.test.ap.apms.model.pojo.SessionMngrResponse;
-import esmo.test.ap.apms.model.pojo.UpdateDataRequest;
-import esmo.test.ap.apms.service.EsmoMetadataService;
-import esmo.test.ap.apms.service.HttpSignatureService;
-
-import esmo.test.ap.apms.service.KeyStoreService;
-import esmo.test.ap.apms.service.NetworkService;
-
-import esmo.test.ap.apms.service.ParameterService;
-import esmo.test.ap.apms.service.impl.HttpSignatureServiceImpl;
-import esmo.test.ap.apms.service.impl.NetworkServiceImpl;
-import esmo.test.ap.apms.utils.DateParsingUtils;
-import esmo.test.ap.apms.utils.EidasNamesUtils;
-import esmo.test.ap.apms.utils.StringDistance;
-
 import java.io.IOException;
 import java.security.Key;
 import java.security.KeyStoreException;
@@ -42,6 +18,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import javax.validation.Valid;
 
 import org.apache.commons.httpclient.NameValuePair;
@@ -51,6 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -58,6 +39,33 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import esmo.test.ap.apms.MemCacheConfig;
+import esmo.test.ap.apms.model.factories.EsmoResponseFactory;
+import esmo.test.ap.apms.model.pojo.Amka;
+import esmo.test.ap.apms.model.pojo.AttributeSet;
+import esmo.test.ap.apms.model.pojo.AttributeType;
+import esmo.test.ap.apms.model.pojo.EntityMetadata;
+import esmo.test.ap.apms.model.pojo.GrantRequest;
+import esmo.test.ap.apms.model.pojo.MinEduResponse;
+import esmo.test.ap.apms.model.pojo.MinEduResponse.InspectionResult;
+import esmo.test.ap.apms.model.pojo.QueryIdResponse;
+import esmo.test.ap.apms.model.pojo.SessionMngrResponse;
+import esmo.test.ap.apms.model.pojo.TokenResponse;
+import esmo.test.ap.apms.model.pojo.UpdateDataRequest;
+import esmo.test.ap.apms.service.EsmoMetadataService;
+import esmo.test.ap.apms.service.HttpSignatureService;
+import esmo.test.ap.apms.service.KeyStoreService;
+import esmo.test.ap.apms.service.NetworkService;
+import esmo.test.ap.apms.service.ParameterService;
+import esmo.test.ap.apms.service.impl.HttpSignatureServiceImpl;
+import esmo.test.ap.apms.service.impl.NetworkServiceImpl;
+import esmo.test.ap.apms.utils.DateParsingUtils;
+import esmo.test.ap.apms.utils.EidasNamesUtils;
+import esmo.test.ap.apms.utils.StringDistance;
 
 /**
  *
@@ -94,7 +102,7 @@ public class FakeControllers {
 
         Cache memCache = this.cacheManager.getCache(MemCacheConfig.AP_SESSION);
 
-        List<NameValuePair> requestParams = new ArrayList();
+        List<NameValuePair> requestParams = new ArrayList<NameValuePair>();
         requestParams.add(new NameValuePair("token", msToken));
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -157,9 +165,10 @@ public class FakeControllers {
         if (bindingResult.hasErrors()) {
             return "amka";
         }
+        
         String acmName = paramServ.getParam("ACM_NAME");
         String apMsName = paramServ.getParam("AP_MS_NAME");
-        List<NameValuePair> requestParams = new ArrayList();
+        List<NameValuePair> requestParams = new ArrayList<NameValuePair>();
         ObjectMapper mapper = new ObjectMapper();
         Cache memCache = this.cacheManager.getCache(MemCacheConfig.AP_SESSION);
         String esmoSession = (String) memCache.get(amka.getSessionId()).get();
@@ -202,13 +211,61 @@ public class FakeControllers {
                 Date amkaDate = DateParsingUtils.parseAmkaDate(amka.amkaNumber);
                 Date eidasDate = DateParsingUtils.parseEidasDate(dateOfBirth.getValues()[0]);
 
+                String qId = amka.getAcademicId();
                 if (amkaDate.compareTo(eidasDate) == 0) {
-                    //TODO call minEdu api with amka to get studentId, or use studentId if present
-
-                    InspectionResult inspResult = new InspectionResult("273004078833", null, "ΣΑΜΟΥ - ΣΑΜΟΥ",
+                	qId = amka.getAmkaNumber();
+                }
+                
+                // call minEdu api with amka to get studentId, or use studentId if present
+            	String minEduTokenUri = paramServ.getParam("MINEDU_TOKEN_URL");
+            	String minEduTokenUser = paramServ.getParam("MINEDU_TOKEN_USERNAME");
+            	String minEduTokenPass = paramServ.getParam("MINEDU_TOKEN_PASSWORD");
+            	String minEduTokenGrantType = paramServ.getParam("MINEDU_TOKEN_GRANTTYPE");
+            	GrantRequest grantReq = new GrantRequest(minEduTokenUser, minEduTokenPass, minEduTokenGrantType);
+            	RestTemplate restTemplate = new RestTemplate();
+    	        TokenResponse tokResp = restTemplate.postForObject(minEduTokenUri, grantReq, TokenResponse.class);
+    	        
+    	        if (tokResp != null && tokResp.getSuccess().equals("true") && tokResp.getOauth() != null && tokResp.getOauth().getAccessToken() != null) {
+    	        	String minEduQueryIdUrl = paramServ.getParam("MINEDU_QUERYID_URL") + "?id=" + qId + "&username=" + minEduTokenUser + "&password=" + minEduTokenPass;
+    	        	HttpHeaders requestHeaders = new HttpHeaders();
+    	        	requestHeaders.add("Authorization", "Bearer " + tokResp.getOauth().getAccessToken());
+    	        	HttpEntity<?> entity = new HttpEntity<>(requestHeaders);
+    	        	ResponseEntity<QueryIdResponse> queryId = restTemplate.exchange(minEduQueryIdUrl, HttpMethod.GET, entity, QueryIdResponse.class);
+    	        	QueryIdResponse qResp = queryId.getBody();
+    	        	esmo.test.ap.apms.model.pojo.InspectionResult ir = qResp.getInspectionResult();
+    	        	
+    	        	
+    	        	InspectionResult inspResult = new InspectionResult(
+	        			ir.getAcademicId(), // academicId 
+	        			ir.getAmka(), // amka 
+	        			ir.getResidenceLocation(), // residenceLocation 
+	        			ir.getUniversityLocation(), // universityLocation 
+	        			ir.getStudentshipType(), // studentshipType 
+	        			ir.getGreekFirstName(), // greekFirstName 
+	        			ir.getGreekLastName(), // greekLastName 
+	        			ir.getLatinFirstName(), // latinFirstName 
+	        			ir.getLatinLastName(), // latinLastName 
+	        			ir.getDepartmentName(), // departmentName 
+	        			ir.getEntryYear().toString(), // entryYear  
+	        			ir.getCurrentSemester().toString(), // currentSemester 
+	        			ir.getPostGraduateProgram(), // postGraduateProgram 
+	        			ir.getPasoValidity(), // pasoValidity 
+	        			ir.getPasoExpirationDate(), // pasoExpirationDate 
+	        			ir.getSubmissionDate(), // submissionDate 
+	        			ir.getApplicationStatus(), // applicationStatus 
+	        			ir.getCancellationDate(), // cancellationDate 
+	        			ir.getCancellationReason(), // cancellationReason 
+	        			ir.getErasmus(), // erasmus 
+	        			ir.getStudentNumber(), // studentNumber 
+	        			ir.getPhotoUrl(), // photoUrl 
+	        			ir.getWebServiceSuccess().toString(), // webServiceSuccess 
+	        			ir.getValidationError() // validationError
+        			);
+    	        	/*InspectionResult inspResult = new InspectionResult("273004078833", null, "ΣΑΜΟΥ - ΣΑΜΟΥ",
                             "ΧΙΟΥ - ΧΙΟΥ", "Προπτυχιακός", "ΜΑΡΙΑ", "ΠΑΠΑΓΕΩΡΓΙΟΥ", "MARIA", "PAPAGEORGIOU", "ΜΗΧΑΝΙΚΩΝ ΟΙΚΟΝΟΜΙΑΣ ΚΑΙ ΔΙΟΙΚΗΣΗΣ (ΠΑΝΕΠΙΣΤΗΜΙΟ ΑΙΓΑΙΟΥ)", "2014",
                             "3", "", "ΝΑΙ", "31/08/2021", "22/10/2015", "Η Ακαδημαϊκή Ταυτότητα παραδόθηκε στο δικαιούχο",
-                            "", "Δεν έχει ακυρωθεί", "ΟΧΙ", "2312014103", "", "true", null);
+                            "", "Δεν έχει ακυρωθεί", "ΟΧΙ", "2312014103", "", "true", null);*/
+    	        	
                     MinEduResponse response = new MinEduResponse("success", inspResult);
 
                     if (StringDistance.areSimilar(EidasNamesUtils.getLatin(eidasGivenName.getValues()[0]), inspResult.getLatinFirstName())
@@ -222,15 +279,13 @@ public class FakeControllers {
                         AttributeSet result = EsmoResponseFactory.buildErrorResponse(apMsName, acmName, resp.getSessionData().getSessionId());
                         attributSetString = mapper.writeValueAsString(result);
                     }
-                }
-
+    	        }
             } catch (ParseException e) {
                 LOG.error("could not parse date " + amka.amkaNumber + " " + dateOfBirth.getValues()[0]);
                 LOG.error(e.getMessage());
                 AttributeSet result = EsmoResponseFactory.buildErrorResponse(apMsName, acmName, resp.getSessionData().getSessionId());
                 attributSetString = mapper.writeValueAsString(result);
             }
-
         }
 
         requestParams.clear();
@@ -273,5 +328,4 @@ public class FakeControllers {
             return "acmRedirect";
         }
     }
-
 }
