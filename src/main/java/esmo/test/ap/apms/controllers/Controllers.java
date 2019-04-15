@@ -28,10 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -39,54 +35,64 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import esmo.test.ap.apms.MemCacheConfig;
+import esmo.test.ap.apms.model.exceptions.ReCaptchaInvalidException;
 import esmo.test.ap.apms.model.factories.EsmoResponseFactory;
-import esmo.test.ap.apms.model.pojo.Amka;
+import esmo.test.ap.apms.model.pojo.AmkaForm;
 import esmo.test.ap.apms.model.pojo.AttributeSet;
 import esmo.test.ap.apms.model.pojo.AttributeType;
 import esmo.test.ap.apms.model.pojo.EntityMetadata;
-import esmo.test.ap.apms.model.pojo.GrantRequest;
 import esmo.test.ap.apms.model.pojo.MinEduResponse;
 import esmo.test.ap.apms.model.pojo.MinEduResponse.InspectionResult;
-import esmo.test.ap.apms.model.pojo.QueryIdResponse;
 import esmo.test.ap.apms.model.pojo.SessionMngrResponse;
-import esmo.test.ap.apms.model.pojo.TokenResponse;
 import esmo.test.ap.apms.model.pojo.UpdateDataRequest;
 import esmo.test.ap.apms.service.EsmoMetadataService;
 import esmo.test.ap.apms.service.HttpSignatureService;
+import esmo.test.ap.apms.service.ICaptchaService;
 import esmo.test.ap.apms.service.KeyStoreService;
+import esmo.test.ap.apms.service.MinEduService;
 import esmo.test.ap.apms.service.NetworkService;
 import esmo.test.ap.apms.service.ParameterService;
+import esmo.test.ap.apms.service.UniversityDataService;
 import esmo.test.ap.apms.service.impl.HttpSignatureServiceImpl;
 import esmo.test.ap.apms.service.impl.NetworkServiceImpl;
 import esmo.test.ap.apms.utils.DateParsingUtils;
-import esmo.test.ap.apms.utils.EidasNamesUtils;
 import esmo.test.ap.apms.utils.StringDistance;
+import esmo.test.ap.apms.utils.TranslitarateUtils;
+import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  *
  * @author nikos
  */
 @Controller
-public class FakeControllers {
+public class Controllers {
 
     private final NetworkService netServ;
     private final ParameterService paramServ;
     private final EsmoMetadataService metadataServ;
     private final KeyStoreService keyServ;
 
-    private final static Logger LOG = LoggerFactory.getLogger(FakeControllers.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Controllers.class);
 
     @Autowired
     private CacheManager cacheManager;
 
     @Autowired
-    public FakeControllers(ParameterService paramServ, KeyStoreService keyServ,
-            EsmoMetadataService metadataServ) throws InvalidKeySpecException, KeyStoreException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    private ICaptchaService captchaService;
+
+    private MinEduService minEduServ;
+
+    private UniversityDataService univServ;
+
+    @Autowired
+    public Controllers(ParameterService paramServ, KeyStoreService keyServ,
+            EsmoMetadataService metadataServ, MinEduService minEduServ,
+            UniversityDataService univServ) throws InvalidKeySpecException, KeyStoreException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
         this.paramServ = paramServ;
         this.metadataServ = metadataServ;
         this.keyServ = keyServ;
@@ -94,6 +100,8 @@ public class FakeControllers {
         String fingerPrint = "7a9ba747ab5ac50e640a07d90611ce612b7bde775457f2e57b804517a87c813b";
         HttpSignatureService httpSigServ = new HttpSignatureServiceImpl(fingerPrint, signingKey);
         this.netServ = new NetworkServiceImpl(httpSigServ);
+        this.minEduServ = minEduServ;
+        this.univServ = univServ;
     }
 
     @RequestMapping(value = "/ap/query", method = {RequestMethod.POST, RequestMethod.GET})
@@ -120,6 +128,7 @@ public class FakeControllers {
 
                 if (apRequest == null) {
                     LOG.error("no apRequest found in session " + sessionId);
+                    model.addAttribute("error", "No AP request attributes found in the Session! Please restart the process");
                     return "errorPage";
                 } else {
 
@@ -132,9 +141,10 @@ public class FakeControllers {
 
                     if (matchingRequestedAttributes.size() > 0) {
                         memCache.put(apMsSessionId, mapper.writeValueAsString(resp)); //save the whole ESMO session in cache
-                        Amka amkaForm = new Amka();
+                        AmkaForm amkaForm = new AmkaForm();
                         amkaForm.setSessionId(apMsSessionId);
                         model.addAttribute("amka", amkaForm);
+                        model.addAttribute("universities", this.univServ.getCodes().get());
                         return "amka";
                     }
                     LOG.error("Error, no supported attributes were found in the request");
@@ -144,6 +154,7 @@ public class FakeControllers {
 
                 }
             } else {
+                model.addAttribute("error", "Error validating token! " + resp.getError());
                 LOG.error("something wring with the SM session!");
                 LOG.error(resp.getError());
                 LOG.error(resp.getCode().toString());
@@ -154,36 +165,46 @@ public class FakeControllers {
         } catch (NoSuchAlgorithmException ex) {
             LOG.info(ex.getMessage());
         }
-
         return "errorPage";
     }
 
     @RequestMapping(value = "/ap/forward", method = {RequestMethod.POST})
-    public String forwardToACM(@ModelAttribute("amka") @Valid Amka amka, BindingResult bindingResult,
-            Model model) throws KeyStoreException, IOException, NoSuchAlgorithmException {
+    public String forwardToACM(@ModelAttribute("amka") @Valid AmkaForm amkaForm, BindingResult bindingResult,
+            Model model, HttpServletRequest request) throws KeyStoreException, IOException, NoSuchAlgorithmException {
 
-        if (bindingResult.hasErrors()) {
-            return "amka";
-        }
-        
         String acmName = paramServ.getParam("ACM_NAME");
         String apMsName = paramServ.getParam("AP_MS_NAME");
-        List<NameValuePair> requestParams = new ArrayList<NameValuePair>();
+        List<NameValuePair> requestParams = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         Cache memCache = this.cacheManager.getCache(MemCacheConfig.AP_SESSION);
-        String esmoSession = (String) memCache.get(amka.getSessionId()).get();
+        String esmoSession = (String) memCache.get(amkaForm.getSessionId()).get();
         SessionMngrResponse resp = mapper.readValue(esmoSession, SessionMngrResponse.class);
         String esmoSessionId = resp.getSessionData().getSessionId();
         String sessionMngrUrl = paramServ.getParam("SESSION_MANAGER_URL");
         String authenticationSet = (String) resp.getSessionData().getSessionVariables().get("authenticationSet");
+//        String userUniversitySelectionId = (String) resp.getSessionData().getSessionVariables().get("selectedUniversityId");
+        String userUniversitySelectionId = amkaForm.code;
         // ""{"id":"id","type":"Response","issuer":"issuer","recipient":"recipient","attributes":[{"name":"http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName","friendlyName":"FamilyName","encoding":"UTF-8","language":"N/A","isMandatory":true,"values":["cph8"]},{"name":"http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName","friendlyName":"FirstName","encoding":"UTF-8","language":"N/A","isMandatory":true,"values":["cph8"]},{"name":"http://eidas.europa.eu/attributes/naturalperson/DateOfBirth","friendlyName":"DateOfBirth","encoding":"UTF-8","language":"N/A","isMandatory":true,"values":["1966-01-01"]},{"name":"http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier","friendlyName":"PersonIdentifier","encoding":"UTF-8","language":"N/A","isMandatory":true,"values":["CA/CA/Cph123456"]}],"properties":{"NameID":"CA/CA/Cph123456","levelOfAssurance":"http://eidas.europa.eu/LoA/low"},"inResponseTo":null,"loa":"low","notBefore":null,"notAfter":null,"status":{"code":"OK","subcode":null,"message":null}}""
+
+        //check form validity
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("universities", this.univServ.getCodes().get());
+            return "amka";
+        }
+        //check captcha validity
+        try {
+            String capResponse = request.getParameter("g-recaptcha-response");
+            this.captchaService.processResponse(capResponse);
+        } catch (ReCaptchaInvalidException e) {
+            LOG.error(e.getMessage());
+            return "amka";
+        }
 
         // check existence of eIDAS attributes
         AttributeSet eIDASAttributes = mapper.readValue(authenticationSet, AttributeSet.class);
         AttributeType dateOfBirth = new AttributeType();
         AttributeType eidasGivenName = new AttributeType();
         AttributeType eidasFamilyName = new AttributeType();
-
         Arrays.asList(eIDASAttributes.getAttributes()).stream().forEach(aType -> {
             if (aType.getFriendlyName().equals("DateOfBirth")) {
                 dateOfBirth.setValues(aType.getValues());
@@ -196,92 +217,64 @@ public class FakeControllers {
             }
         });
 
-        // store the ap response
+        // get the ap response
         String attributSetString = null;
         if (dateOfBirth.getValues() == null || eidasGivenName.getValues() == null || eidasFamilyName.getValues() == null) {
-            LOG.error("no date of birth was present is  eIDAS attributes");
+            LOG.error("Missing mandatory eIDAS attributes");
             AttributeSet result = EsmoResponseFactory.buildErrorResponse(apMsName, acmName, resp.getSessionData().getSessionId());
             attributSetString = mapper.writeValueAsString(result);
-
         } else {
             //fetch AP response from minEdu API
-            // wrap response to ESMO response
             try {
-                // check name and date of birth from amka!
-                Date amkaDate = DateParsingUtils.parseAmkaDate(amka.amkaNumber);
+                // check name and date of birth from amka!  
+                Date amkaDate = DateParsingUtils.parseAmkaDate(amkaForm.amkaNumber);
                 Date eidasDate = DateParsingUtils.parseEidasDate(dateOfBirth.getValues()[0]);
-
-                String qId = amka.getAcademicId();
-                if (amkaDate.compareTo(eidasDate) == 0) {
-                	qId = amka.getAmkaNumber();
-                }
-                
-                // call minEdu api with amka to get studentId, or use studentId if present
-            	String minEduTokenUri = paramServ.getParam("MINEDU_TOKEN_URL");
-            	String minEduTokenUser = paramServ.getParam("MINEDU_TOKEN_USERNAME");
-            	String minEduTokenPass = paramServ.getParam("MINEDU_TOKEN_PASSWORD");
-            	String minEduTokenGrantType = paramServ.getParam("MINEDU_TOKEN_GRANTTYPE");
-            	GrantRequest grantReq = new GrantRequest(minEduTokenUser, minEduTokenPass, minEduTokenGrantType);
-            	RestTemplate restTemplate = new RestTemplate();
-    	        TokenResponse tokResp = restTemplate.postForObject(minEduTokenUri, grantReq, TokenResponse.class);
-    	        
-    	        if (tokResp != null && tokResp.getSuccess().equals("true") && tokResp.getOauth() != null && tokResp.getOauth().getAccessToken() != null) {
-    	        	String minEduQueryIdUrl = paramServ.getParam("MINEDU_QUERYID_URL") + "?id=" + qId + "&username=" + minEduTokenUser + "&password=" + minEduTokenPass;
-    	        	HttpHeaders requestHeaders = new HttpHeaders();
-    	        	requestHeaders.add("Authorization", "Bearer " + tokResp.getOauth().getAccessToken());
-    	        	HttpEntity<?> entity = new HttpEntity<>(requestHeaders);
-    	        	ResponseEntity<QueryIdResponse> queryId = restTemplate.exchange(minEduQueryIdUrl, HttpMethod.GET, entity, QueryIdResponse.class);
-    	        	QueryIdResponse qResp = queryId.getBody();
-    	        	esmo.test.ap.apms.model.pojo.InspectionResult ir = qResp.getInspectionResult();
-    	        	
-    	        	
-    	        	InspectionResult inspResult = new InspectionResult(
-	        			ir.getAcademicId(), // academicId 
-	        			ir.getAmka(), // amka 
-	        			ir.getResidenceLocation(), // residenceLocation 
-	        			ir.getUniversityLocation(), // universityLocation 
-	        			ir.getStudentshipType(), // studentshipType 
-	        			ir.getGreekFirstName(), // greekFirstName 
-	        			ir.getGreekLastName(), // greekLastName 
-	        			ir.getLatinFirstName(), // latinFirstName 
-	        			ir.getLatinLastName(), // latinLastName 
-	        			ir.getDepartmentName(), // departmentName 
-	        			ir.getEntryYear().toString(), // entryYear  
-	        			ir.getCurrentSemester().toString(), // currentSemester 
-	        			ir.getPostGraduateProgram(), // postGraduateProgram 
-	        			ir.getPasoValidity(), // pasoValidity 
-	        			ir.getPasoExpirationDate(), // pasoExpirationDate 
-	        			ir.getSubmissionDate(), // submissionDate 
-	        			ir.getApplicationStatus(), // applicationStatus 
-	        			ir.getCancellationDate(), // cancellationDate 
-	        			ir.getCancellationReason(), // cancellationReason 
-	        			ir.getErasmus(), // erasmus 
-	        			ir.getStudentNumber(), // studentNumber 
-	        			ir.getPhotoUrl(), // photoUrl 
-	        			ir.getWebServiceSuccess().toString(), // webServiceSuccess 
-	        			ir.getValidationError() // validationError
-        			);
-    	        	/*InspectionResult inspResult = new InspectionResult("273004078833", null, "ΣΑΜΟΥ - ΣΑΜΟΥ",
-                            "ΧΙΟΥ - ΧΙΟΥ", "Προπτυχιακός", "ΜΑΡΙΑ", "ΠΑΠΑΓΕΩΡΓΙΟΥ", "MARIA", "PAPAGEORGIOU", "ΜΗΧΑΝΙΚΩΝ ΟΙΚΟΝΟΜΙΑΣ ΚΑΙ ΔΙΟΙΚΗΣΗΣ (ΠΑΝΕΠΙΣΤΗΜΙΟ ΑΙΓΑΙΟΥ)", "2014",
-                            "3", "", "ΝΑΙ", "31/08/2021", "22/10/2015", "Η Ακαδημαϊκή Ταυτότητα παραδόθηκε στο δικαιούχο",
-                            "", "Δεν έχει ακυρωθεί", "ΟΧΙ", "2312014103", "", "true", null);*/
-    	        	
-                    MinEduResponse response = new MinEduResponse("success", inspResult);
-
-                    if (StringDistance.areSimilar(EidasNamesUtils.getLatin(eidasGivenName.getValues()[0]), inspResult.getLatinFirstName())
-                            && StringDistance.areSimilar(EidasNamesUtils.getLatin(eidasFamilyName.getValues()[0]), inspResult.getLatinLastName())) {
-                        AttributeSet result = EsmoResponseFactory.buildFromMinEduResponse(response, apMsName, acmName, resp.getSessionData().getSessionId());
-                        attributSetString = mapper.writeValueAsString(result);
-                    } else {
-                        LOG.error("eidas name and amka names do not match!!");
-                        LOG.error(" eidasName " + eidasGivenName.getValues()[0] + " -- " + inspResult.getLatinFirstName());
-                        LOG.error(" eidasFamilyName " + eidasFamilyName.getValues()[0] + " --  " + inspResult.getLatinLastName());
-                        AttributeSet result = EsmoResponseFactory.buildErrorResponse(apMsName, acmName, resp.getSessionData().getSessionId());
-                        attributSetString = mapper.writeValueAsString(result);
+                String studentAcademicId = amkaForm.getAcademicId();
+                if (amkaDate.compareTo(eidasDate) == 0) {  //compare the dates, amka and eidas
+                    if (StringUtils.isEmpty(studentAcademicId)) { // if user didn't present their academic id
+                        //get academicId from amka
+                        Optional<String> academicId = minEduServ.getAcademicIdFromAMKA(amkaForm.getAmkaNumber(), userUniversitySelectionId, esmoSessionId);
+                        if (!academicId.isPresent()) {
+                            LOG.error("ERROR: No matching AcademicId found for amka " + amkaForm.getAmkaNumber());
+                            model.addAttribute("error", "No matching AcademicId found");
+                            return "errorPage";
+                        }
+                        studentAcademicId = academicId.get();
                     }
-    	        }
+                    //get academic attributes from minEdu
+                    Optional<MinEduResponse> minEduResp = minEduServ.getInspectioResponseByAcademicId(studentAcademicId, userUniversitySelectionId, esmoSessionId);
+                    if (minEduResp.isPresent()) {
+                        InspectionResult inspResult = minEduResp.get().getResult().getInspectionResult();
+                        //check minedu name and eIDAS names
+                        if (StringDistance.areSimilar(TranslitarateUtils.getLatinFromMixed(eidasGivenName.getValues()[0]), inspResult.getLatinFirstName())
+                                && StringDistance.areSimilar(TranslitarateUtils.getLatinFromMixed(eidasFamilyName.getValues()[0]), inspResult.getLatinLastName())) {
+//                            MinEduResponse response = new MinEduResponse("success", inspResult.get());
+
+                            MinEduResponse response = new MinEduResponse(minEduResp.get().getResult(), minEduResp.get().getServiceCallID(), minEduResp.get().getCode(),
+                                    minEduResp.get().isSuccess(), minEduResp.get().getTimestamp());
+
+                            AttributeSet result = EsmoResponseFactory.buildFromMinEduResponse(response, apMsName, acmName, resp.getSessionData().getSessionId());
+                            attributSetString = mapper.writeValueAsString(result);
+                        } else {
+                            LOG.error("eidas name and amka names do not match!!");
+                            LOG.error(" eidasName " + eidasGivenName.getValues()[0] + " -- " + inspResult.getLatinFirstName());
+                            LOG.error(" eidasFamilyName " + eidasFamilyName.getValues()[0] + " --  " + inspResult.getLatinLastName());
+                            AttributeSet result = EsmoResponseFactory.buildErrorResponse(apMsName, acmName, resp.getSessionData().getSessionId());
+                            attributSetString = mapper.writeValueAsString(result);
+                        }
+                    } else {
+                        LOG.error("ERROR: getting academic info for " + studentAcademicId);
+                        model.addAttribute("error", "ERROR: getting academic info for " + studentAcademicId);
+                        return "errorPage";
+                    }
+                } else {
+                    LOG.error("ERROR: mismatch between amka date and eIDAS date");
+                    model.addAttribute("error", "Academic Attributes do not match eIDAS attributes!");
+                    return "errorPage";
+                }
+
             } catch (ParseException e) {
-                LOG.error("could not parse date " + amka.amkaNumber + " " + dateOfBirth.getValues()[0]);
+                LOG.error("could not parse date " + amkaForm.amkaNumber + " " + dateOfBirth.getValues()[0]);
                 LOG.error(e.getMessage());
                 AttributeSet result = EsmoResponseFactory.buildErrorResponse(apMsName, acmName, resp.getSessionData().getSessionId());
                 attributSetString = mapper.writeValueAsString(result);
@@ -297,6 +290,7 @@ public class FakeControllers {
 
         if (!resp.getCode().toString().equals("OK")) {
             LOG.error("ERROR: " + resp.getError());
+            model.addAttribute("error", "Error communicating with the ESMO Network");
             return "errorPage";
         }
 
@@ -307,6 +301,7 @@ public class FakeControllers {
             resp = mapper.readValue(netServ.sendPostBody(sessionMngrUrl, "/sm/updateSessionData", updateReq, "application/json", 1), SessionMngrResponse.class);
             if (!resp.getCode().toString().equals("OK")) {
                 LOG.error("ERROR: " + resp.getError());
+                model.addAttribute("error", "Error communicating with the ESMO Network");
                 return "errorPage";
             }
         }
@@ -318,6 +313,7 @@ public class FakeControllers {
         resp = mapper.readValue(netServ.sendGet(sessionMngrUrl, "/sm/generateToken", requestParams, 1), SessionMngrResponse.class);
         if (!resp.getCode().toString().equals("NEW")) {
             LOG.error("ERROR: " + resp.getError());
+            model.addAttribute("error", "Could not generate redirection token");
             return "errorPage";
         } else {
             String msToken = resp.getAdditionalData();

@@ -50,6 +50,10 @@ public class StringSimilarity {
         word2 = "Kavassalis";
         assertEquals(StringDistance.areSimilar(word1, word2), true);
        
+        word1 = "Nikolaos";
+        word2 = "NIKOLAOS";
+        assertEquals(StringDistance.areSimilar(word1, word2), true);
+        
 
     }
 

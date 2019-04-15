@@ -2,9 +2,15 @@
 
 version: '2'
 services:
+    
+    Memcached:
+         image: sameersbn/memcached:1.5.6
+         ports:
+            - 11211:11211   
+    
     esmoMockAP:
         container_name: esmoMockAP
-        image: endimion13/esmo-gr-ap:0.0.1
+        image: endimion13/esmo-gr-ap:0.0.5
         environment:
             - HTTP_HEADER=false
             - ASYNC_SIGNATURE=true
@@ -21,21 +27,23 @@ services:
             - ESMO_SUPPORTED_SIG_ALGORITHMS=RSA-SHA256
             - ESMO_SUPPORTED_ENC_ALGORITHMS=RSA-SHA256
             - ACM_URL=http://0.0.0.0:8090 
-            - SESSION_MANAGER_URL=http://0.0.0.0:8090
+            - SESSION_MANAGER_URL=http://dss1.aegean.gr:8090
             - KEYSTORE_PATH=resources/testKeys/keystore.jks
-            - CONFIGURATION_MANAGER_URL=http://5.79.83.118:8080
+            - CONFIGURATION_MANAGER_URL=http://dss1.aegean.gr:8080
             - ACM_NAME=ACMms001
-            - ACM_URL=http://dss1.aegean.gr:8070
+            - ACM_URL=http://localhost:8070
             - AP_MS_NAME=APms001
             - REDIRECT_JWT_SENDER=APms001
             - REDIRECT_JWT_RECEIVER=ACMms001
             - SUPPORTED_CLAIMS=eduPersonAffiliation,primaryAffiliation,schacHomeOrganization,mail,schacExpiryDate,mobile,eduPersonPrincipalName,eduPersonPrincipalNamePrior,displayName,sn,givenName
             - MINEDU_TOKEN_URL=https://validation.interoperability.gr:9443/OAUTH2Proxy_1.0.0/services/oauthproxy/authorization/token
-            - MINEDU_TOKEN_USERNAME=user
-            - MINEDU_TOKEN_PASSWORD=pass
+            - MINEDU_TOKEN_USERNAME=uaegean
+            - MINEDU_TOKEN_PASSWORD=k6v5sS4l1s!%
             - MINEDU_TOKEN_GRANTTYPE=password
             - MINEDU_QUERYID_URL=https://gateway.interoperability.gr/academicId/1.0.1/queryID
+            - MINEDU_QUERY_BY_AMKA=https://gateway.interoperability.gr/academicId/1.0.1/student
         volumes:
             - /home/nikos/NetBeansProjects/esmo.gr.idp/src/test/resources:/resources
+            - /home/nikos/esmo-ap-logs:/logs
         ports:
           - 8093:8080

@@ -8,7 +8,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
         <meta name="description" content=""></meta>
         <meta name="author" content=""></meta>
-        <title>Create a new account</title>
+        <title>Provide additional data</title>
         <!-- Compiled and minified CSS -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css"></link>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
@@ -17,6 +17,7 @@
               type="image/x-icon"
               href="favicon.ico"></link>
 
+        <script src='https://www.google.com/recaptcha/api.js'></script>
         <!-- Overide the sidebar css -->
         <style>
             .sideBarClass{
@@ -43,6 +44,10 @@
 
                     <div class="container" style="width: 90%;">
 
+                        <div class="row">
+                            <h3 th:text="#{identifyMinEdu}">Identify to access your academic attributes</h3> 
+                        </div>
+
                         <div class="row breadCrumbs">
                             <div class="col s12" style="font-size: smaller;" >
                                 <a  onclick="langGR()" style="cursor: pointer">Greek</a>
@@ -52,45 +57,56 @@
                         </div>
 
                         <div class="row instructions">
-                            <!--                            <div  id="mobile" class="col s12 flow-text hide-on-large-only">
-                                                            <div class="row">
-                                                                <p th:text="#{identifyMinEdu}">Identify to access your academic attributes</p> 
-                                                                <p th:text="#{provideAmka}">You will now be directed to the eIDAS Network to securely identify and trustly 
-                                                                    provide us your main identity attributes. Review the identification attributes that will be requested
-                                                                </p>  
-                                                            </div>
-                                                            <div class="row">
-                                                                <form action="#" th:action="@{/ap/forward}" th:object="${amka}" method="post">
-                                                                    <p th:text="#{amka}"> <input type="text" th:field="*{amkaNumber}" /> </p>
-                                                                    <p th:text="#{academicId}"><input type="text" th:field="*{academicId}" /> </p>
-                                                                    <input type="hidden" name="sessionId" th:field="*{sessionId}" th:value="${amka.sessionId}"/>
-                                                                    <p>
-                                                                        <input class="waves-effect waves-light btn-large swell-btn next-btn" type="submit" value="Submit" /> 
-                                                                        <input class="waves-effect waves-light btn-large swell-btn cancel-btn" type="reset" value="Reset" />
-                                                                    </p>
-                                                                </form>
-                                                            </div>
-                                                        </div>-->
-                            <div   class="col s12  hide-on-med-and-down ">
+                            <div   class="col s12 ">
                                 <div class="row">
-                                    <p th:text="#{identifyMinEdu}">Identify to access your academic attributes</p> 
-                                    <p th:text="#{provideAmka}">You will now be directed to the eIDAS Network to securely identify and trustly 
+                                    <p  class="col s12" th:text="#{provideAmka}">You will now be directed to the eIDAS Network to securely identify and trustly 
                                         provide us your main identity attributes. Review the identification attributes that will be requested
                                     </p>  
                                 </div>
-                                <div class="row">
 
-                                    <form  th:action="@{/ap/forward}" th:object="${amka}" method="post"  commandName="amka">
+                                <form  th:action="@{/ap/forward}" th:object="${amka}" method="post"  commandName="amka">
+
+                                    <i style="color:red" th:if="${#fields.hasErrors('code')}" th:errors="*{code}">A.M.K.A is required!</i>
+                                    <div class="row">
+                                        <div class="input-field col l8 s12">
+                                            <select id="universities" class="icons" th:field="*{code}" >
+                                                <option value="" disabled selected>Choose your option</option>
+                                                <th:block th:each="university : ${universities}">
+                                                    <option th:value="${university.code}" th:text="${#strings.toUpperCase(university.name)}"></option>
+                                                </th:block>
+                                            </select>
+                                            <label th:text="#{select}">Select Your University of Origin</label>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="row">
                                         <i style="color:red" th:if="${#fields.hasErrors('amkaNumber')}" th:errors="*{amkaNumber}">A.M.K.A is required!</i>
-                                        <label for="amka" th:text="#{amka}"></label>
-                                        <input type="text" id="amka" th:field="*{amkaNumber}" /> 
-                                        <label for="academicId" th:text="#{academicId}"></label>
-                                        <input id="academicId" type="text" th:field="*{academicId}" /> </p>
-                                        <input type="hidden" name="sessionId" th:field="*{sessionId}" th:value="${amka.sessionId}"/>
-                                        <button class="col s12 m4 l4 waves-effect waves-light btn-large swell-btn cancel-btn" type="reset" value="Reset">Reset</button>
-                                        <button class= "col s12 m4 l4 waves-effect waves-light btn-large swell-btn next-btn" type="submit" value="Submit">Submit</button>
-                                    </form>
-                                </div>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col l1 s12" for="amka" th:text="#{amka}"></label>
+                                        <input class="col l7 s12" type="text" id="amka" th:field="*{amkaNumber}" /> 
+                                    </div>
+                                    <div class="row">
+                                        <label class="col l1 s12" for="academicId" th:text="#{academicId}"></label>
+                                        <input class="col l7 s12" id="academicId" type="text" th:field="*{academicId}" /> </p>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="g-recaptcha col-sm-5"
+                                             th:attr="data-sitekey=${@captchaSettings.getSite()}"></div>
+                                        <span id="captchaError" class="alert alert-danger col-sm-4"
+                                              style="display:none"></span>
+                                    </div>
+
+                                    <input type="hidden" name="sessionId" th:field="*{sessionId}" th:value="${amka.sessionId}"/>
+                                    <div class="row">
+                                        <button  class="col s12 m4 l4 waves-effect waves-light btn-large swell-btn cancel-btn" type="reset" value="Reset">Reset</button>
+                                        <button  class= "col s12 m4 l4 waves-effect waves-light btn-large swell-btn next-btn" type="submit" value="Submit">Submit</button>
+                                    </div>
+
+                                </form>
+
                             </div>
 
 
@@ -133,70 +149,23 @@
                                     $(document).ready(function () {
 
 
-                                    $('select').material_select();
-                                    $('.modal').modal();
-                                    let countrySelector = $("#countrySelection").is(":visible")?$("#countrySelection"):$("#countrySelection2");
-                                    if (!countrySelector.val()) {
-                                    $('#next').removeClass("waves-effect waves-light submit").addClass('disabled');
-                                    }
-
-                                    countrySelector.change(function () {
-                                    if (this.vaue !== "") {
-                                    $('#next').removeClass("disabled").addClass('waves-effect waves-light submit');
-                                    } else {
-                                    $('#next').removeClass("waves-effect waves-light submit").addClass('disabled');
-                                    }
-
+                                        $('select').material_select();
+                                        $('.modal').modal();
+                                        function register(event) {
+                                            event.preventDefault();
+                                            let formData = $('form').serialize();
+                                        }
+                                        function langGR() {
+                                            window.location.href = 'login?localeCode=gr';
+                                        }
+                                        function langEN() {
+                                            window.location.href = 'login?localeCode=en';
+                                        }
                                     });
-                                    });
-                                    function onNextClick() {
-                                    let countrySelector = $("#mobile").is(":visible")?$("#countrySelection"):$("#countrySelection2");
-                                    let country = countrySelector.val();
-                                    let IdPMSSession = $("#IdPMSSession").val();
-                                    let url = "generateSAMLToken?citizenCountry=" + country + "&IdPMSSession=" + IdPMSSession;
-                                    $.get(url, function (data, status) {
-                                    if (status == "success") {
-                                    let form = $('<form></form>', {
-                                    method: "post",
-                                            action: $("#eidasUrl").val()
-                                    });
-                                    form.append('<input type="hidden" name="SAMLRequest" value=' + data + '></input>')
-                                            form.append('<input type="hidden" name="country" value=' + country + '></input>');
-                                    $('body').append(form);
-                                    form.submit();
-                                    }
-                                    });
-                                    }
-
-                                    function linkedInClick() {
-                                    let clientId = [[${clientID}]];
-                                    let redirectURI = [[${redirectURI}]];
-                                    let responseType = [[${responseType}]];
-                                    let state = [[${state}]];
-                                    let location = "https://www.linkedin.com/oauth/v2/authorization?"
-                                            + "response_type=" + responseType
-                                            + "&client_id=" + clientId
-                                            + "&redirect_uri=" + redirectURI
-                                            + "&state=" + state;
-                                    window.location = location;
-                                    }
-
-                                    function onCancelClick() {
-                                    let failPage = [[${spFailPage}]];
-                                    window.location = [[${urlPrefix}]] + "/authfail?reason=disagree";
-                                    }
-                                    function onNextClickUAegean() {
-                                    let uAegeanAP = [[${UAegeanAP}]];
-                                    let location = uAegeanAP + "?t=" + [[${token}]] + "&sp=" + [[${sp}]];
-                                    window.location = location;
-                                    }
-                                    function langGR(){
-                                    window.location.href = 'login?localeCode=gr';
-                                    }
-                                    function langEN(){
-                                    window.location.href = 'login?localeCode=en';
-                                    }
                                     /*]]>*/
         </script>
+
     </body>
 </html>
+
+

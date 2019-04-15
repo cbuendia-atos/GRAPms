@@ -125,7 +125,7 @@ public class TestSessisonManagerConnection {
         resp = this.mapper.readValue(netServ.sendPostBody(hostUrl, uri, updateDR, "application/json", 1), SessionMngrResponse.class);
         System.out.println(resp.getCode().toString());
 
-        String eidasResponse = "{\"id\":\"id\",\"type\":\"Response\",\"issuer\":\"issuer\",\"recipient\":\"recipient\",\"attributes\":[{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName\",\"friendlyName\":\"FamilyName\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"PAPAGEORGIOU\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName\",\"friendlyName\":\"FirstName\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"MARIA\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/DateOfBirth\",\"friendlyName\":\"DateOfBirth\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"1966-01-01\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier\",\"friendlyName\":\"PersonIdentifier\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"CA/CA/Cph123456\"]}],\"properties\":{\"NameID\":\"CA/CA/Cph123456\",\"levelOfAssurance\":\"http://eidas.europa.eu/LoA/low\"},\"inResponseTo\":null,\"loa\":\"low\",\"notBefore\":null,\"notAfter\":null,\"status\":{\"code\":\"OK\",\"subcode\":null,\"message\":null}}";
+        String eidasResponse = "{\"id\":\"id\",\"type\":\"Response\",\"issuer\":\"issuer\",\"recipient\":\"recipient\",\"attributes\":[{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName\",\"friendlyName\":\"FamilyName\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"TRIANTAFYLLOU\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName\",\"friendlyName\":\"FirstName\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"NIKOLAOS\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/DateOfBirth\",\"friendlyName\":\"DateOfBirth\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"1983-10-05\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier\",\"friendlyName\":\"PersonIdentifier\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"CA/CA/Cph123456\"]}],\"properties\":{\"NameID\":\"CA/CA/Cph123456\",\"levelOfAssurance\":\"http://eidas.europa.eu/LoA/low\"},\"inResponseTo\":null,\"loa\":\"low\",\"notBefore\":null,\"notAfter\":null,\"status\":{\"code\":\"OK\",\"subcode\":null,\"message\":null}}";
         updateDR = new UpdateDataRequest(sessionId, "authenticationSet", eidasResponse);
         resp = this.mapper.readValue(netServ.sendPostBody(hostUrl, uri, updateDR, "application/json", 1), SessionMngrResponse.class);
         System.out.println(resp.getCode().toString());
@@ -147,9 +147,9 @@ public class TestSessisonManagerConnection {
         resp = this.mapper.readValue(netServ.sendGet(hostUrl, uri, postParams, 1), SessionMngrResponse.class);
         String token = resp.getAdditionalData();
 
-        mvc.perform(get("/ap/query?msToken=" + token))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(status().isOk());
+//        mvc.perform(get("/ap/query?msToken=" + token))
+//                .andDo(MockMvcResultHandlers.print())
+//                .andExpect(status().isOk());
 
     }
 
@@ -205,7 +205,7 @@ public class TestSessisonManagerConnection {
         resp = this.mapper.readValue(netServ.sendPostBody(hostUrl, uri, updateDR, "application/json", 1), SessionMngrResponse.class);
         System.out.println(resp.getCode().toString());
 
-        String eidasResponse = "\"{\"id\":\"id\",\"type\":\"Response\",\"issuer\":\"issuer\",\"recipient\":\"recipient\",\"attributes\":[{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName\",\"friendlyName\":\"FamilyName\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"cph8\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName\",\"friendlyName\":\"FirstName\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"cph8\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/DateOfBirth\",\"friendlyName\":\"DateOfBirth\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"1966-01-01\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier\",\"friendlyName\":\"PersonIdentifier\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"CA/CA/Cph123456\"]}],\"properties\":{\"NameID\":\"CA/CA/Cph123456\",\"levelOfAssurance\":\"http://eidas.europa.eu/LoA/low\"},\"inResponseTo\":null,\"loa\":\"low\",\"notBefore\":null,\"notAfter\":null,\"status\":{\"code\":\"OK\",\"subcode\":null,\"message\":null}}\"";
+        String eidasResponse = "{\"id\":\"id\",\"type\":\"Response\",\"issuer\":\"issuer\",\"recipient\":\"recipient\",\"attributes\":[{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName\",\"friendlyName\":\"FamilyName\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"TRIANTAFYLLOU\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName\",\"friendlyName\":\"FirstName\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"NIKOLAOS\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/DateOfBirth\",\"friendlyName\":\"DateOfBirth\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"1983-10-05\"]},{\"name\":\"http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier\",\"friendlyName\":\"PersonIdentifier\",\"encoding\":\"UTF-8\",\"language\":\"N/A\",\"isMandatory\":true,\"values\":[\"CA/CA/Cph123456\"]}],\"properties\":{\"NameID\":\"CA/CA/Cph123456\",\"levelOfAssurance\":\"http://eidas.europa.eu/LoA/low\"},\"inResponseTo\":null,\"loa\":\"low\",\"notBefore\":null,\"notAfter\":null,\"status\":{\"code\":\"OK\",\"subcode\":null,\"message\":null}}";
         updateDR = new UpdateDataRequest(sessionId, "authenticationSet", eidasResponse);
         resp = this.mapper.readValue(netServ.sendPostBody(hostUrl, uri, updateDR, "application/json", 1), SessionMngrResponse.class);
         System.out.println(resp.getCode().toString());
@@ -226,6 +226,7 @@ public class TestSessisonManagerConnection {
         postParams.add(new NameValuePair("receiver", "IdPms001"));
         resp = this.mapper.readValue(netServ.sendGet(hostUrl, uri, postParams, 1), SessionMngrResponse.class);
         String token = resp.getAdditionalData();
+
         System.out.println(token);
 
     }

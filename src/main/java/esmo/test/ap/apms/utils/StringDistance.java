@@ -79,7 +79,7 @@ public class StringDistance {
     }
 
     public static boolean areSimilar(String word1, String word2) {
-        return areSimilarLevhestine(word1.toLowerCase(), word2.toLowerCase(), 0.7) && weightedDistance(word1, word2) < 4;
+        return areSimilarLevhestine(word1.toLowerCase(), word2.toLowerCase(), 0.7) && weightedDistance(word1.toLowerCase(), word2.toLowerCase()) < 4;
 
     }
 

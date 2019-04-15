@@ -43,5 +43,11 @@ public class TestDates {
         assertEquals(d1.compareTo(d2), 0);
 
     }
+    
+    @Test
+    public void testTimestampByMinEdu(){
+        System.out.println(TimestampUtils.getIso8601Date());
+    
+    }
 
 }

@@ -11,21 +11,33 @@ import javax.validation.constraints.NotBlank;
  *
  * @author nikos
  */
-public class Amka {
+public class AmkaForm {
 
     @NotBlank(message="AMKA must not be empty")
     public String amkaNumber;
     public String academicId;
     public String sessionId;
+    
+    @NotBlank(message="Please select a university")
+    public String code;
 
-    public Amka() {
+    public AmkaForm() {
     }
 
-    public Amka(String amka, String academicId, String sessionId
+    public AmkaForm(String amka, String academicId, String sessionId, String code
     ) {
         this.amkaNumber = amka;
         this.academicId = academicId;
         this.sessionId = sessionId;
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public String getAmkaNumber() {

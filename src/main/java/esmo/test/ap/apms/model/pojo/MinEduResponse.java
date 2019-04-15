@@ -5,37 +5,112 @@
  */
 package esmo.test.ap.apms.model.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  *
  * @author nikos
  */
 public class MinEduResponse {
 
-    private String response;
-    private InspectionResult inspectionResult;
+    private String code;
+    
+    @JsonProperty("ServiceCallID")
+    private String ServiceCallID;
+    private boolean success;
+    @JsonProperty("Result")
+    private Result Result;
+    private String timestamp;
 
     public MinEduResponse() {
     }
 
-    public MinEduResponse(String response, InspectionResult inspectionResult) {
-        this.response = response;
-        this.inspectionResult = inspectionResult;
+    public MinEduResponse(Result Result, String ServiceCallID, String code, boolean success, String timestamp) {
+        this.Result = Result;
+        this.ServiceCallID = ServiceCallID;
+        this.code = code;
+        this.success = success;
+        this.timestamp = timestamp;
     }
 
-    public String getResponse() {
-        return response;
+    public Result getResult() {
+        return Result;
     }
 
-    public void setResponse(String response) {
-        this.response = response;
+    public void setResult(Result Result) {
+        this.Result = Result;
     }
 
-    public InspectionResult getInspectionResult() {
-        return inspectionResult;
+    public String getServiceCallID() {
+        return ServiceCallID;
     }
 
-    public void setInspectionResult(InspectionResult inspectionResult) {
-        this.inspectionResult = inspectionResult;
+    public void setServiceCallID(String ServiceCallID) {
+        this.ServiceCallID = ServiceCallID;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public static class Result {
+
+        private InspectionResult inspectionResult;
+        private String response;
+        private String errorReason;
+
+        public Result(InspectionResult inspectionResult, String response, String errorReason) {
+            this.inspectionResult = inspectionResult;
+            this.response = response;
+            this.errorReason = errorReason;
+        }
+
+        public Result() {
+        }
+
+        public InspectionResult getInspectionResult() {
+            return inspectionResult;
+        }
+
+        public void setInspectionResult(InspectionResult inspectionResult) {
+            this.inspectionResult = inspectionResult;
+        }
+
+        public String getResponse() {
+            return response;
+        }
+
+        public void setResponse(String response) {
+            this.response = response;
+        }
+
+        public String getErrorReason() {
+            return errorReason;
+        }
+
+        public void setErrorReason(String errorReason) {
+            this.errorReason = errorReason;
+        }
     }
 
     public static class InspectionResult {
@@ -68,10 +143,10 @@ public class MinEduResponse {
         public InspectionResult() {
         }
 
-        public InspectionResult(String academicId, String amka, String residenceLocation, String universityLocation, String studentshipType, 
-                String greekFirstName, String greekLastName, String latinFirstName, String latinLastName, String departmentName, 
+        public InspectionResult(String academicId, String amka, String residenceLocation, String universityLocation, String studentshipType,
+                String greekFirstName, String greekLastName, String latinFirstName, String latinLastName, String departmentName,
                 String entryYear, String currentSemester, String postGraduateProgram, String pasoValidity, String pasoExpirationDate,
-                String submissionDate, String applicationStatus, String cancellationDate, String cancellationReason, String erasmus, 
+                String submissionDate, String applicationStatus, String cancellationDate, String cancellationReason, String erasmus,
                 String studentNumber, String photoUrl, String webServiceSuccess, String validationError) {
             this.academicId = academicId;
             this.amka = amka;

@@ -8,11 +8,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
         <meta name="description" content=""></meta>
         <meta name="author" content=""></meta>
-        <title>Create a new account</title>
+        <title>An error occurred</title>
         <!-- Compiled and minified CSS -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css"></link>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
-        <link rel="stylesheet" href="css/main.css"></link>
+        <link rel="stylesheet" href="/css/main.css"></link>
         <link rel="icon"
               type="image/x-icon"
               href="favicon.ico"></link>
@@ -33,14 +33,20 @@
         </style>
     </head>
     <body>
-
-
         <div th:replace="header :: header">Header</div>
+        <div class="container">
+            <div class="row  mainContent">
+                <div class="col s12 m12 l12">
+                    <h2>
+                        An Error occurred!
+                    </h2>
+                    <p th:text="${error}"> Unfortunately an error occurred! Please restart the process</p>
+                </div>
+            </div>
+        </div>
 
-       <h1 th:text="${error}" >
-        </h1>
 
-
+        <div class="row" th:replace="footer :: footer"></div>
 
     </body>
 </html>

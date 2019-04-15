@@ -61,8 +61,9 @@ public class TestConfig {
         Mockito.when(paramServ().getParam("AP_MS_NAME")).thenReturn("APms001");
         Mockito.when(paramServ().getParam("REDIRECT_JWT_SENDER")).thenReturn("APms001");
         Mockito.when(paramServ().getParam("REDIRECT_JWT_RECEIVER")).thenReturn("ACMms001");
-        //paramServ.getParam("SUPPORTED_CLAIMS")
+        //paramServ.getParam("SUPPORTED_CLAIMS") Env.UNIVERSITIES_CONFIG_PATH=/home/nikos/NetBeansProjects/ESMO-AP-TEST/src/test/resources/testKeys/university_codes.json
         Mockito.when(paramServ().getParam("SUPPORTED_CLAIMS")).thenReturn("eduPersonAffiliation,primaryAffiliation,schacHomeOrganization,mail,schacExpiryDate,mobile,eduPersonPrincipalName,eduPersonPrincipalNamePrior,displayName,sn,givenName");
+        Mockito.when(paramServ().getParam("UNIVERSITIES_CONFIG_PATH")).thenReturn("home/nikos/NetBeansProjects/ESMO-AP-TEST/src/test/resources/testKeys/university_codes.json");
 
         return new KeyStoreServiceImpl(paramServ());
     }

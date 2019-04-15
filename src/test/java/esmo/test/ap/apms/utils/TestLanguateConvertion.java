@@ -26,4 +26,19 @@ public class TestLanguateConvertion {
 
     }
 
+    @Test
+    public void getLatinNameFromEidas() {
+        String value = "Τριανταφύλλου, Triantafyllou";
+
+//        System.out.println(TranslitarateUtils.getLatinFromMixed(value));
+        assertEquals(TranslitarateUtils.getLatinFromMixed(value), "Triantafyllou");
+
+        value = "Triantafyllou";
+        assertEquals(TranslitarateUtils.getLatinFromMixed(value), "Triantafyllou");
+
+        value = "Triantafyllou Delonga";
+        assertEquals(TranslitarateUtils.getLatinFromMixed(value), "Triantafyllou Delonga");
+        
+    }
+
 }
