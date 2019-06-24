@@ -14,40 +14,32 @@ import esmo.test.ap.apms.model.pojo.AttributeType;
 import esmo.test.ap.apms.model.pojo.SessionMngrResponse;
 import esmo.test.ap.apms.model.pojo.UpdateDataRequest;
 import esmo.test.ap.apms.service.HttpSignatureService;
-
 import esmo.test.ap.apms.service.KeyStoreService;
 import esmo.test.ap.apms.service.MSConfigurationService;
 import esmo.test.ap.apms.service.ParameterService;
 import esmo.test.ap.apms.service.impl.HttpSignatureServiceImpl;
-
 import esmo.test.ap.apms.service.impl.MSConfigurationServiceImpl;
 import esmo.test.ap.apms.service.impl.NetworkServiceImpl;
-//import gr.uagean.loginWebApp.MemCacheConfig;
-
 import java.io.IOException;
+import java.security.Key;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.httpclient.NameValuePair;
 import static org.junit.Assert.assertEquals;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.security.Key;
-import java.security.KeyStoreException;
-import java.security.UnrecoverableKeyException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
-import org.junit.Before;
 
 /**
  *
@@ -150,13 +142,12 @@ public class TestSessisonManagerConnection {
 //        mvc.perform(get("/ap/query?msToken=" + token))
 //                .andDo(MockMvcResultHandlers.print())
 //                .andExpect(status().isOk());
-
     }
 
     @Test
     public void getEndpointFromMSConfig() throws InvalidKeySpecException, IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
         MSConfigurationService msConf = new MSConfigurationServiceImpl(paramServ, netServ, keyServ);
-        assertEquals(msConf.getMsEndpointByIdAndApiCall("ACMms001", "acmRequest"), "http://5.79.83.118:8070/acm/request");
+        assertEquals(msConf.getMsEndpointByIdAndApiCall("ACMms001", "acmRequest"), "https://dss1.aegean.gr:8073/acm/request");
 
     }
 
@@ -223,7 +214,7 @@ public class TestSessisonManagerConnection {
         postParams.clear();
         postParams.add(new NameValuePair("sessionId", sessionId));
         postParams.add(new NameValuePair("sender", "ACMms001"));
-        postParams.add(new NameValuePair("receiver", "IdPms001"));
+        postParams.add(new NameValuePair("receiver", "APms001"));
         resp = this.mapper.readValue(netServ.sendGet(hostUrl, uri, postParams, 1), SessionMngrResponse.class);
         String token = resp.getAdditionalData();
 

@@ -31,14 +31,14 @@ public class TestLanguateConvertion {
         String value = "Τριανταφύλλου, Triantafyllou";
 
 //        System.out.println(TranslitarateUtils.getLatinFromMixed(value));
-        assertEquals(TranslitarateUtils.getLatinFromMixed(value), "Triantafyllou");
+        assertEquals(TranslitarateUtils.getLatinFromMixed(value), "TRIANTAFYLLOU");
 
         value = "Triantafyllou";
-        assertEquals(TranslitarateUtils.getLatinFromMixed(value), "Triantafyllou");
+        assertEquals(TranslitarateUtils.getLatinFromMixed(value), "TRIANTAFYLLOU");
 
         value = "Triantafyllou Delonga";
-        assertEquals(TranslitarateUtils.getLatinFromMixed(value), "Triantafyllou Delonga");
-        
+        assertEquals(TranslitarateUtils.getLatinFromMixed(value), "TRIANTAFYLLOU DELONGA");
+
     }
 
 }

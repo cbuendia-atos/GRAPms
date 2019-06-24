@@ -52,7 +52,8 @@ public class TestConfig {
         Mockito.when(paramServ().getParam("ESMO_SUPPORTED_SIG_ALGORITHMS")).thenReturn("RSA");
         Mockito.when(paramServ().getParam("ESMO_SUPPORTED_ENC_ALGORITHMS")).thenReturn("RSA");
 
-        Mockito.when(paramServ().getParam("CONFIGURATION_MANAGER_URL")).thenReturn("http://5.79.83.118:8080");
+//        Mockito.when(paramServ().getParam("CONFIGURATION_MANAGER_URL")).thenReturn("http://5.79.83.118:8080");
+        Mockito.when(paramServ().getParam("CONFIGURATION_MANAGER_URL")).thenReturn("http://dss1.aegean.gr:8080");
 
         Mockito.when(paramServ().getParam("SM_URL")).thenReturn("http://dss1.aegean.gr:8090");
         //ACM_NAME

@@ -79,6 +79,11 @@ public class AttributeType {
     public void setValues(String[] values) {
         this.values = values;
     }
+
+    @Override
+    public String toString() {
+        return "AttributeType{" + "name=" + name + ", friendlyName=" + friendlyName + ", encoding=" + encoding + ", language=" + language + ", isMandatory=" + isMandatory + ", values=" + values + '}';
+    }
     
     
     

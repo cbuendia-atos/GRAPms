@@ -23,4 +23,5 @@ public interface KeyStoreService {
     public Key getJWTPublicKey() throws KeyStoreException, UnsupportedEncodingException;
     public Key getHttpSigPublicKey() throws KeyStoreException, UnsupportedEncodingException;
     public SignatureAlgorithm getAlgorithm();
+    public String getFingerPrint() throws KeyStoreException, UnsupportedEncodingException;;
 }

@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package esmo.test.ap.apms.model.enums;
+package esmo.test.ap.apms.service;
 
 /**
  *
  * @author nikos
  */
-public enum TypeEnum {
-    Request, Response, AuthResponse
+public class NoEduService {
+    
 }

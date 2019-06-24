@@ -7,6 +7,13 @@
             <id>Internal company repository</id>
             <url>file://${basedir}/lib</url>
         </repository>
+        
+        <repository>
+            <id>Shibbolet</id>
+            <name>Shibbolet</name>
+            <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+        </repository>
+        
     </repositories>
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -128,7 +135,20 @@
             <version>1.28.0</version>
         </dependency>
 
-        
+
+        <!-- SAML-->
+        <dependency>
+        <groupId>org.springframework.security.extensions</groupId>
+        <artifactId>spring-security-saml2-core</artifactId>
+        <version>1.0.9.RELEASE</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>5.1.4.RELEASE</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
         
    

@@ -5,7 +5,6 @@
  */
 package esmo.test.ap.apms.service.impl;
 
-
 import esmo.test.ap.apms.service.KeyStoreService;
 import esmo.test.ap.apms.service.ParameterService;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -23,6 +22,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -115,6 +115,11 @@ public class KeyStoreServiceImpl implements KeyStoreService {
             return SignatureAlgorithm.RS256;
         }
         return SignatureAlgorithm.HS256;
+    }
+
+    @Override
+    public String getFingerPrint() throws KeyStoreException, UnsupportedEncodingException {
+        return DigestUtils.sha256Hex(this.getHttpSigPublicKey().getEncoded());
     }
 
 }

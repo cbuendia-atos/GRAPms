@@ -137,4 +137,11 @@ public class AttributeSet {
         this.properties = properties;
     }
 
+    @Override
+    public String toString() {
+        return "AttributeSet{" + "id=" + id + ", type=" + type + ", issuer=" + issuer + ", recipient=" + recipient + ", attributes=" + attributes + ", properties=" + properties + ", inResponseTo=" + inResponseTo + ", loa=" + loa + ", notBefore=" + notBefore + ", notAfter=" + notAfter + ", status=" + status + '}';
+    }
+
+    
+    
 }

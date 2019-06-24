@@ -14,6 +14,7 @@ import esmo.test.ap.apms.model.pojo.TokenResponse;
 import esmo.test.ap.apms.service.MinEduService;
 import esmo.test.ap.apms.service.ParameterService;
 import esmo.test.ap.apms.utils.TimestampUtils;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,8 @@ public class MinEduServiceImpl implements MinEduService {
     private final String minEduTokenGrantType;
     private final String minEduQueryIdEndpoint;
     private final String minEduQueryByAmkaEndpoint;
+    private LocalDateTime accessTokenExpiration;
+    private Optional<String> activeToken;
 
     private final static Logger LOG = LoggerFactory.getLogger(MinEduServiceImpl.class);
 
@@ -52,6 +55,8 @@ public class MinEduServiceImpl implements MinEduService {
         this.minEduTokenGrantType = paramServ.getParam("MINEDU_TOKEN_GRANTTYPE");
         this.minEduQueryIdEndpoint = paramServ.getParam("MINEDU_QUERYID_URL");
         this.minEduQueryByAmkaEndpoint = paramServ.getParam("MINEDU_QUERY_BY_AMKA"); //https://gateway.interoperability.gr/academicId/1.0.1/student/
+        this.accessTokenExpiration = LocalDateTime.now();
+        this.activeToken = Optional.empty();
     }
 
     @Override
@@ -59,13 +64,23 @@ public class MinEduServiceImpl implements MinEduService {
         GrantRequest grantReq = new GrantRequest(minEduTokenUser, minEduTokenPass, minEduTokenGrantType);
         RestTemplate restTemplate = new RestTemplate();
         LOG.info("will get toke from theurl: " + minEduTokenUri);
+
         try {
-            TokenResponse tokResp = restTemplate.postForObject(minEduTokenUri, grantReq, TokenResponse.class);
-            if (tokResp != null && tokResp.getSuccess().equals("true") && tokResp.getOauth() != null && tokResp.getOauth().getAccessToken() != null) {
-                LOG.info("retrieved token " + tokResp.getOauth().getAccessToken());
-                return Optional.of(tokResp.getOauth().getAccessToken());
+            if (activeToken.isPresent() && accessTokenExpiration.isAfter(LocalDateTime.now().plusSeconds(30))) {
+                LOG.info("MinEdu OAth token still alive " + activeToken.get());
+                return activeToken;
+            } else {
+                LOG.info("will get new token ");
+                TokenResponse tokResp = restTemplate.postForObject(minEduTokenUri, grantReq, TokenResponse.class);
+                if (tokResp != null && tokResp.getSuccess().equals("true") && tokResp.getOauth() != null && tokResp.getOauth().getAccessToken() != null) {
+                    LOG.info("retrieved token " + tokResp.getOauth().getAccessToken());
+                    this.accessTokenExpiration = this.accessTokenExpiration.plusSeconds(tokResp.getOauth().getExpiresIn());
+                    this.activeToken = Optional.of(tokResp.getOauth().getAccessToken());
+                    return this.activeToken;
+                }
+                LOG.error(tokResp.getError().getMessage().toString());
             }
-            LOG.error(tokResp.getError().getMessage().toString());
+
         } catch (HttpClientErrorException e) {
             LOG.error(e.getMessage());
         }
@@ -117,7 +132,10 @@ public class MinEduServiceImpl implements MinEduService {
                 LOG.info("MinEduLog " + logEntry.toString());
 
                 if (queryResponse.getBody().isSuccess()) {
-                    return Optional.of(queryResponse.getBody().getResult().getAcademicID());
+                    if (queryResponse.getBody().getResult() != null && queryResponse.getBody().getResult().getAcademicID() != null) {
+                        return Optional.of(queryResponse.getBody().getResult().getAcademicID());
+                    }
+                    LOG.error("no acadmic id found for amka " + amkaNumber);
                 }
             } catch (HttpClientErrorException e) {
                 LOG.error(e.getMessage());

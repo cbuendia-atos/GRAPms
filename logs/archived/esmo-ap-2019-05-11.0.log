@@ -1,0 +1,2 @@
+2019-05-11 12:58:46,863 INFO org.opensaml.saml2.metadata.provider.AbstractReloadingMetadataProvider [Timer-0] New metadata succesfully loaded for 'https://idp.aegean.gr/idp/shibboleth'
+2019-05-11 12:58:46,868 INFO org.opensaml.saml2.metadata.provider.AbstractReloadingMetadataProvider [Timer-0] Next refresh cycle for metadata provider 'https://idp.aegean.gr/idp/shibboleth' will occur on '2019-05-11T12:58:46.641Z' ('2019-05-11T15:58:46.641+03:00' local time)

@@ -42,7 +42,7 @@ public class TranslitarateUtils {
 
         });
 
-        return joiner.toString();
+        return joiner.toString().toUpperCase();
     }
 
 }
