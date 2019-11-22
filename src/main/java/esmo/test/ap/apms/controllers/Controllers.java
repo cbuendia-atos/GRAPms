@@ -193,6 +193,11 @@ public class Controllers {
             return Arrays.asList(apMsMetadata.getClaims()).contains(attribute.getFriendlyName());
         }).collect(Collectors.toList());
 
+        //debug
+        matchingRequestedAttributes.stream().forEach(att -> {
+            LOG.info("Matching attributes are" + att.getFriendlyName() + att.getValues()[0]);
+        });
+
         String sessionMngrUrl = paramServ.getParam("SESSION_MANAGER_URL");
         String authenticationSet = (String) resp.getSessionData().getSessionVariables().get("authenticationSet");
 //        String userUniversitySelectionId = (String) resp.getSessionData().getSessionVariables().get("selectedUniversityId");
@@ -256,14 +261,23 @@ public class Controllers {
                 || personalIdentifier.getValues()[0].contains("05068907693")
                 || personalIdentifier.getValues()[0].contains("99999142H")
                 || personalIdentifier.getValues()[0].contains("60001019906")
+                || personalIdentifier.getValues()[0].contains("IT/NO/SIEL19H38BL5VS")
                 || eidasGivenName.getValues()[0].toLowerCase().contains("Triin")
                 || eidasFamilyName.getValues()[0].toLowerCase().contains("Puusaar")
                 || eidasGivenName.getValues()[0].toLowerCase().contains("Mario Ferdinando")
                 || eidasFamilyName.getValues()[0].toLowerCase().contains("Faiella")
                 || !StringUtils.isEmpty(this.paramServ.getParam("TESTING"))) {
-            AttributeSet result = EsmoResponseFactory.buildFakeResponse("issuer", "recipient", esmoSessionId, matchingRequestedAttributes);
-            attributSetString = mapper.writeValueAsString(result);
-            LOG.info("Found test user " + eidasGivenName.getValues()[0] + " " + eidasFamilyName.getValues()[0] + " " + personalIdentifier.getValues()[0]);
+
+            if (personalIdentifier.getValues()[0].contains("IT/NO/SIEL19H38BL5VS")) {
+                LOG.info("Found test Italian NO user" + eidasGivenName.getValues()[0] + " " + eidasFamilyName.getValues()[0] + " " + personalIdentifier.getValues()[0]);
+                AttributeSet result = EsmoResponseFactory.buildFakeItalianResponse("issuer", "recipient", esmoSessionId, matchingRequestedAttributes);
+                attributSetString = mapper.writeValueAsString(result);
+            } else {
+                AttributeSet result = EsmoResponseFactory.buildFakeResponse("issuer", "recipient", esmoSessionId, matchingRequestedAttributes);
+                attributSetString = mapper.writeValueAsString(result);
+                LOG.info("Found test user " + eidasGivenName.getValues()[0] + " " + eidasFamilyName.getValues()[0] + " " + personalIdentifier.getValues()[0]);
+            }
+
         } else {
             if ((dateOfBirth.getValues() == null || eidasGivenName.getValues() == null || eidasFamilyName.getValues() == null)
                     && !personalIdentifier.getValues()[0].contains("ES")) {
