@@ -249,15 +249,6 @@ public class Controllers {
         //fake users
         if ((eidasGivenName.getValues()[0].equals("ΑΝΔΡΕΑΣ, ANDREAS") && eidasFamilyName.getValues()[0].equals("ΠΕΤΡΟΥ, PETROU"))
                 || personalIdentifier.getValues()[0].contains("ERMIS-11076669")
-                || personalIdentifier.getValues()[0].contains("36f6b7d3-d25a-42f5-b591-7e488ec140d5")
-                || personalIdentifier.getValues()[0].contains("05068907693")
-                || personalIdentifier.getValues()[0].contains("99999142H")
-                || personalIdentifier.getValues()[0].contains("60001019906")
-                || personalIdentifier.getValues()[0].contains("IT/NO/SIEL19H38BL5VS")
-                || eidasGivenName.getValues()[0].toLowerCase().contains("Triin")
-                || eidasFamilyName.getValues()[0].toLowerCase().contains("Puusaar")
-                || eidasGivenName.getValues()[0].toLowerCase().contains("Mario Ferdinando")
-                || eidasFamilyName.getValues()[0].toLowerCase().contains("Faiella")
                 || !StringUtils.isEmpty(this.paramServ.getParam("TESTING"))) {
 
             if (personalIdentifier.getValues()[0].contains("IT/NO/SIEL19H38BL5VS")) {
