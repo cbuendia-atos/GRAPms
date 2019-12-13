@@ -232,15 +232,7 @@ public class Controllers {
         });
 
         //for testing captcha validity is skiped for test user
-        if (!(personalIdentifier.getValues()[0].contains("ERMIS-11076669")
-                || personalIdentifier.getValues()[0].contains("36f6b7d3-d25a-42f5-b591-7e488ec140d5")
-                || personalIdentifier.getValues()[0].contains("05068907693")
-                || personalIdentifier.getValues()[0].contains("99999142H")) //
-                || personalIdentifier.getValues()[0].contains("60001019906")
-                || eidasGivenName.getValues()[0].toLowerCase().contains("Triin")
-                || eidasFamilyName.getValues()[0].toLowerCase().contains("Puusaar")
-                || eidasGivenName.getValues()[0].contains("Mario Ferdinando")
-                || eidasFamilyName.getValues()[0].contains("Faiella")) {
+        if (!(personalIdentifier.getValues()[0].contains("ERMIS-11076669")) {
             //check captcha validity
             try {
                 String capResponse = request.getParameter("g-recaptcha-response");
